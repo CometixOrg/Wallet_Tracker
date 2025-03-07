@@ -24,4 +24,8 @@ const toolchain = getToolchainArgument('lint');
 
 const manifestPath = path.join(workingDirectory, folder, 'Cargo.toml');
 
-await $`cargo ${toolchain} clippy --manifest-path ${manifestPath} --fix ${lintArgs}`;
+if (fix) {
+  await $`cargo ${toolchain} clippy --manifest-path ${manifestPath} --fix ${lintArgs}`;
+} else {
+  await $`cargo ${toolchain} clippy --manifest-path ${manifestPath} ${lintArgs}`;
+}
