@@ -41,7 +41,17 @@ pub fn create_pda_account<'a>(
                 ],
             )?;
         }
+        invoke_signed(
+            &system_instruction::allocate(new_pda_account.key, space as u64),
+            &[new_pda_account.clone(), system_program.clone()],
+            &[new_pda_signer_seeds],
+        )?;
 
+        invoke_signed(
+            &system_instruction::assign(new_pda_account.key, owner),
+            &[new_pda_account.clone(), system_program.clone()],
+            &[new_pda_signer_seeds],
+        )
     } else {
         invoke_signed(
             &system_instruction::create_account(
